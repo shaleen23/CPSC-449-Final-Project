@@ -2,9 +2,15 @@ import asyncio
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
 # Create the FastAPI app
 app = FastAPI()
+
+# Establish a connection to MongoDB
+client = MongoClient('mongodb://localhost:27017')
+db = client['bookstore']
+collection = db['books']
 
 # Create the Pydantic model for the book data
 class Book(BaseModel):
@@ -13,11 +19,8 @@ class Book(BaseModel):
     description: str
     price: float
     stock: int
+    sold: int = 0
 
-# Establish a connection to MongoDB
-client = MongoClient()
-db = client.bookstore
-collection = db.books
 
 # Create the API endpoints
 
