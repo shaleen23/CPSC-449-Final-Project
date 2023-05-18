@@ -94,22 +94,26 @@ async def get_book(book_id: str):
 
 
 
-
 @app.post("/books")
 async def add_book(book: Book):
+    # Convert book object to dictionary
     book_dict = book.dict()
+
+    # Extract book_id from the dictionary
     book_id = book_dict.get("id")
-    
+
     # Check if a book with the same ID already exists
-    existing_book = await collection.find_one({"_id": book_id})
+    existing_book = await collection.find_one({"_id": ObjectId(book_id)})
     if existing_book:
         raise HTTPException(status_code=400, detail="Book with the same ID already exists")
 
+    # Insert the book into the collection
     inserted_book = await collection.insert_one(book_dict)
+
+    # Get the inserted book's ID
     book_id = str(inserted_book.inserted_id)
+
     return {"message": "Book added successfully", "book_id": book_id}
-
-
 
 
 
