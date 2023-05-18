@@ -1,10 +1,11 @@
+from pydantic import BaseModel
 import hashlib
-from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Response
+from typing import List, Optional
+from bson import ObjectId
 from pymongo import InsertOne, IndexModel
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
-from bson import ObjectId
+
 
 app = FastAPI()
 
@@ -12,7 +13,6 @@ app = FastAPI()
 client = AsyncIOMotorClient("mongodb://localhost:27017")
 db = client["bookstore"]
 collection = db["books"]
-collection.delete_many({})
 
 # Book model
 class Book(BaseModel):
