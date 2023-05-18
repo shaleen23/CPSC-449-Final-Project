@@ -17,7 +17,7 @@ collection.delete_many({}) #deletes records after each time it is executed
 
 # Book model
 class Book(BaseModel):
-    book_id: Optional[str]
+    book_id: str
     title: str
     author: str
     description: str
@@ -71,7 +71,7 @@ async def get_books(response: Response):
     """
     Retrieves all books from the database.
     """
-    books = await collection.find().to_list(1000)
+    books = await collection.find().to_list(600)
     formatted_books = [{**book, "book_id": str(book["_id"])} for book in books]
     response.headers["X-Total-Count"] = str(len(formatted_books))
     return formatted_books
