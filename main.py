@@ -13,10 +13,11 @@ app = FastAPI()
 client = AsyncIOMotorClient("mongodb://localhost:27017")
 db = client["bookstore"]
 collection = db["books"]
+collection.delete_many({}) #deletes records after each time it is executed
 
 # Book model
 class Book(BaseModel):
-    book_id: str
+    book_id: Optional[str]
     title: str
     author: str
     description: str
@@ -24,8 +25,7 @@ class Book(BaseModel):
     stock: int
     sold_count: int = 0
 
-
-
+    
 def generate_book_id(title: str, author: str) -> str:
     """
     Generates a unique book ID based on the book's title and author.
@@ -50,10 +50,6 @@ async def insert_books():
         del book_data["book_id"]
         operations.append(InsertOne(book_data))
     await collection.bulk_write(operations)
-
-
-
-
 
 
 async def create_indexes():
@@ -101,23 +97,17 @@ async def get_book(book_id: str):
 
 @app.post("/books")
 async def add_book(book: Book):
-    """
-    Adds a new book to the database.
-    """
-    book_data = book.dict()
-    book_id = book_data.get("book_id")
+    book_dict = book.dict()
+    book_id = book_dict.get("id")
     
+    # Check if a book with the same ID already exists
     existing_book = await collection.find_one({"_id": book_id})
     if existing_book:
         raise HTTPException(status_code=400, detail="Book with the same ID already exists")
 
-    book_data["_id"] = book_id
-    result = await collection.replace_one({"_id": book_id}, book_data, upsert=True)
-    if result.upserted_id is None:
-        raise HTTPException(status_code=500, detail="Failed to add book")
-    
-    return {"message": "Book added successfully", "book_id": str(result.upserted_id)}
-
+    inserted_book = await collection.insert_one(book_dict)
+    book_id = str(inserted_book.inserted_id)
+    return {"message": "Book added successfully", "book_id": book_id}
 
 
 
