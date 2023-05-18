@@ -154,22 +154,24 @@ async def delete_book(book_id: str):
 
 @app.get("/search", response_model=List[Book])
 async def search_books(title: Optional[str] = None, author: Optional[str] = None, min_price: Optional[float] = None, max_price: Optional[float] = None):
-    """
-    Searches for books based on various criteria such as title, author, minimum price, and maximum price.
-    """
     query = {}
 
     if title:
         query["title"] = {"$regex": f".*{title}.*", "$options": "i"}
     if author:
         query["author"] = {"$regex": f".*{author}.*", "$options": "i"}
-    if min_price is not None:
-        query["price"] = {"$gte": min_price} if "price" not in query else {"$gte": min_price, **query["price"]}
-    if max_price is not None:
-        query["price"] = {"$lte": max_price} if "price" not in query else {"$lte": max_price, **query["price"]}
+    if min_price:
+        if "price" not in query:
+            query["price"] = {}
+        query["price"]["$gte"] = min_price
+    if max_price:
+        if "price" not in query:
+            query["price"] = {}
+        query["price"]["$lte"] = max_price
 
     results = await collection.find(query).to_list(1000)
     return results
+
 
 
 
